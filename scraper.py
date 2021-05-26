@@ -6,25 +6,26 @@ from fp.fp import FreeProxy
 
 ROOT = 'https://hypescience.com/page/'
 
+
 class HomePage:
     """ Get title, url, body, then uses the link to
         to visit the page and get the body text
     """
-    def __init__(self, title, url, body):
+    def __init__(self, title, url, body, browser, proxy=None):
         self.title = title
         self.url = url
         self.body = body
-        self.browser = mechanicalsoup.StatefulBrowser(
-            raise_on_404=True,
-            user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36'
-            )
+        self.browser = browser
+        self.proxy = proxy
+
         logger.info(f"Title: {self.title} - URL: {self.url}")
         
         self.get_body_text()
     
     def get_body_text(self):
+        logger.info(f"Using Proxy in the body: {self.proxy}")
         time.sleep(.2)
-        response = self.browser.open(self.url)
+        response = self.browser.open(self.url, proxies={'http':self.proxy, 'https': self.proxy})#, verify=False)
         section = response.soup.find('article', class_='content-area__body')
         all_p = section.find_all('p')
         self.body = [i.text.replace(',', '') for i in all_p]
@@ -37,26 +38,16 @@ class HSScraper(HomePage):
         self.body = HomePage.get_body_text
         self.browser = mechanicalsoup.StatefulBrowser(
             raise_on_404=True,
-            user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36',
+            user_agent='Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:88.0) Gecko/20100101 Firefox/88.0',
             )
 
     def _get_links_title(self):
-        page = 7
+        page = 0
         while True:
-            proxy = FreeProxy(timeout=1).get()
+            #proxy = FreeProxy(timeout=0.3, rand=True).get()
+            proxy = None
             logger.info(f"Using Proxy: {proxy}")
-
-            try:
-                response = self.browser.open(ROOT + str(page), proxies={'http':proxy, 'https':proxy}, verify=False)
-                logger.info(f"Opening {response}")
-            except:
-                response = self.browser.open(ROOT + str(page), proxies={'http':proxy, 'https':proxy}, verify=False)
-                logger.info(f"Opening {response}")
-
-            if response.status_code == 403:
-                logger.info(f"Bad proxy. Returning {response}")
-                response = self.browser.open(ROOT + str(page), proxies={'http':proxy, 'https':proxy}, verify=False)
-                logger.info(f"Opening {response}")
+            response = self.browser.open(ROOT + str(page), proxies={'http':proxy, 'https': proxy})
 
             article = response.soup.find_all('article', class_='posts__item')
 
@@ -65,11 +56,15 @@ class HSScraper(HomePage):
                     title=i.find('a', class_='posts__item__thumb__link').text.replace(',', '').replace('&#8220', '').replace('&#8221', ''),
                     url=i.find('a', class_='posts__item__thumb__link')['href'],
                     body=self.body,
+                    proxy=proxy,
+                    browser=self.browser,
                 )
                 for i in article 
             ]
             page +=1
             
+            #self.browser.close()
+            time.sleep(10)
             logger.info(f"Scrapping page {page}")
 
             # Saving after each page
