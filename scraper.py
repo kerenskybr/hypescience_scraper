@@ -42,36 +42,43 @@ class HSScraper(HomePage):
             )
 
     def _get_links_title(self):
-        page = 0
+        page = 405
+
         while True:
             #proxy = FreeProxy(timeout=0.3, rand=True).get()
             proxy = None
             logger.info(f"Using Proxy: {proxy}")
-            response = self.browser.open(ROOT + str(page), proxies={'http':proxy, 'https': proxy})
+            try:
+                response = self.browser.open(ROOT + str(page), proxies={'http':proxy, 'https': proxy})
 
-            article = response.soup.find_all('article', class_='posts__item')
+                article = response.soup.find_all('article', class_='posts__item')
 
-            self.title_and_url = [
-                HomePage(
-                    title=i.find('a', class_='posts__item__thumb__link').text.replace(',', '').replace('&#8220', '').replace('&#8221', ''),
-                    url=i.find('a', class_='posts__item__thumb__link')['href'],
-                    body=self.body,
-                    proxy=proxy,
-                    browser=self.browser,
-                )
-                for i in article 
-            ]
+                self.title_and_url = [
+                    HomePage(
+                        title=i.find('a', class_='posts__item__thumb__link').text.replace(',', '').replace('&#8220', '').replace('&#8221', ''),
+                        url=i.find('a', class_='posts__item__thumb__link')['href'],
+                        body=self.body,
+                        proxy=proxy,
+                        browser=self.browser,
+                    )
+                    for i in article 
+                ]
+                
+                
+                #self.browser.close()
+                time.sleep(10)
+                logger.info(f"Scrapping page {page}")
+                # Saving after each page
+                self._save_to_file()
+                
+            except:
+                pass
+            
             page +=1
             
-            #self.browser.close()
-            time.sleep(10)
-            logger.info(f"Scrapping page {page}")
 
-            # Saving after each page
-            self._save_to_file()
-
-            if article is None:
-                break
+            #if article is None:
+            #    break
     
     def _save_to_file(self):
         logger.info(f"Saving to file")
