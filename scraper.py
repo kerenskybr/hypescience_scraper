@@ -63,9 +63,7 @@ class HSScraper(HomePage):
                     )
                     for i in article 
                 ]
-                
-                
-                #self.browser.close()
+
                 time.sleep(10)
                 logger.info(f"Scrapping page {page}")
                 # Saving after each page
@@ -75,11 +73,7 @@ class HSScraper(HomePage):
                 pass
             
             page +=1
-            
 
-            #if article is None:
-            #    break
-    
     def _save_to_file(self):
         logger.info(f"Saving to file")
         with open('data.csv', 'a') as file:
