@@ -42,7 +42,7 @@ class HSScraper(HomePage):
             )
 
     def _get_links_title(self):
-        page = 405
+        page = 0
 
         while True:
             #proxy = FreeProxy(timeout=0.3, rand=True).get()
