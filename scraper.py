@@ -35,7 +35,7 @@ class HomePage:
 
 class HSScraper(HomePage):
     def __init__(self) -> None:
-        self.body = HomePage.get_body_text
+        self.body = super().get_body_text
         self.browser = mechanicalsoup.StatefulBrowser(
             raise_on_404=True,
             user_agent='Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:88.0) Gecko/20100101 Firefox/88.0',
@@ -76,7 +76,7 @@ class HSScraper(HomePage):
 
     def _save_to_file(self):
         logger.info(f"Saving to file")
-        with open('data.csv', 'a') as file:
+        with open('data1.csv', 'a') as file:
             for i in self.title_and_url:
                 #for key, value in i.__dict__.items():
                 file.write("%s,%s,%s\n" % (i.__dict__['title'], i.__dict__['url'], i.__dict__['body']))
